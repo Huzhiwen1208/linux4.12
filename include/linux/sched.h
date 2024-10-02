@@ -511,18 +511,18 @@ struct task_struct {
 #endif
 	int				on_rq; // 是否在就绪队列中
 
-	int				prio; // 优先级
+	int				prio; // 调度优先级
 	int				static_prio; // 静态优先级
 	int				normal_prio; // 正常优先级
 	unsigned int			rt_priority; // 实时优先级
 
 	const struct sched_class *sched_class; // 调度类
-	struct sched_entity		se; // 调度实体
+	struct sched_entity		se; // 公平调度实体
 	struct sched_rt_entity		rt; // 实时调度实体
 #ifdef CONFIG_CGROUP_SCHED
 	struct task_group *sched_task_group;
 #endif
-	struct sched_dl_entity		dl; // deadline调度实体
+	struct sched_dl_entity		dl; // 限期调度实体
 
 #ifdef CONFIG_PREEMPT_NOTIFIERS
 	/* List of struct preempt_notifier: */
@@ -559,8 +559,8 @@ struct task_struct {
 	struct rb_node			pushable_dl_tasks;
 #endif
 
-	struct mm_struct *mm; // 内存描述符
-	struct mm_struct *active_mm; // 活动内存描述符
+	struct mm_struct *mm; // 用户虚拟地址空间
+	struct mm_struct *active_mm; // 用户活跃虚地址空间
 
 	/* Per-thread vma caching: */
 	struct vmacache			vmacache; // vma缓存

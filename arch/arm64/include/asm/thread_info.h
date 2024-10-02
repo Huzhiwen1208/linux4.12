@@ -50,6 +50,10 @@ struct thread_info {
 #ifdef CONFIG_ARM64_SW_TTBR0_PAN
 	u64			ttbr0;		/* saved TTBR0_EL1 */
 #endif
+	/**
+	 * 保存当前进程的抢占计数器
+	 * | | 不可屏蔽中断计数（1）| 硬中断计数（4） | 软中断计数（8） | 抢占计数（8） |
+	 * */
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
 };
 

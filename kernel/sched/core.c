@@ -1993,7 +1993,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags) {
 
 #endif /* CONFIG_SMP */
 
-	ttwu_queue(p, cpu, wake_flags);
+	ttwu_queue(p, cpu, wake_flags); // wake up the task
 stat:
 	ttwu_stat(p, cpu, wake_flags);
 out:
@@ -2733,6 +2733,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	struct task_struct *next, struct rq_flags *rf) {
 	struct mm_struct *mm, *oldmm;
 
+	// 为下一个任务准备上下文切换，在arm64基本是空操作
 	prepare_task_switch(rq, prev, next);
 
 	mm = next->mm;
@@ -2744,16 +2745,16 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 */
 	arch_start_context_switch(prev);
 
-	if (!mm) {
+	if (!mm) {  // 如果没有mm结构，说明下一个进程是内核线程
 		next->active_mm = oldmm;
 		mmgrab(oldmm);
 		enter_lazy_tlb(oldmm, next);
-	} else
+	} else  // 如果有mm结构，说明下一个进程是用户进程，需要切换页表
 		switch_mm_irqs_off(oldmm, mm, next);
 
-	if (!prev->mm) {
-		prev->active_mm = NULL;
-		rq->prev_mm = oldmm;
+	if (!prev->mm) {  // 当前进程是内核线程
+		prev->active_mm = NULL; // 释放借用的用户态内存空间
+		rq->prev_mm = oldmm;  // 将借来的地址空间保存在这里
 	}
 
 	rq->clock_update_flags &= ~(RQCF_ACT_SKIP | RQCF_REQ_SKIP);
@@ -2769,7 +2770,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
-	barrier();
+	barrier();  // 编译器优化屏障，确保finish_task_switch()在switch_to()之后执行
 
 	return finish_task_switch(prev);
 }
@@ -2975,7 +2976,7 @@ unsigned long long task_sched_runtime(struct task_struct *p) {
 void scheduler_tick(void) {
 	int cpu = smp_processor_id();
 	struct rq *rq = cpu_rq(cpu);
-	struct task_struct *curr = rq->curr;
+	struct task_struct *curr = rq->curr; // 当前进程
 	struct rq_flags rf;
 
 	sched_clock_tick();
@@ -2983,7 +2984,7 @@ void scheduler_tick(void) {
 	rq_lock(rq, &rf);
 
 	update_rq_clock(rq);
-	curr->sched_class->task_tick(rq, curr, 0);
+	curr->sched_class->task_tick(rq, curr, 0); // 调用当前进程的调度类的task_tick方法
 	cpu_load_update_active(rq);
 	calc_global_load_tick(rq);
 
@@ -3169,6 +3170,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf) {
 	 * higher scheduling class, because otherwise those loose the
 	 * opportunity to pull in more work from other CPUs.
 	 */
+	 // 如果当前运行的任务是idle或者fair类，且当前运行队列中所有的任务都是fair类
 	if (likely((prev->sched_class == &idle_sched_class ||
 		prev->sched_class == &fair_sched_class) &&
 		rq->nr_running == rq->cfs.h_nr_running)) {
@@ -3297,6 +3299,7 @@ static void __sched notrace __schedule(bool preempt) {
 		switch_count = &prev->nvcsw;
 	}
 
+	// 选择下一个要运行的任务
 	next = pick_next_task(rq, prev, &rf);
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
