@@ -559,8 +559,8 @@ struct task_struct {
 	struct rb_node			pushable_dl_tasks;
 #endif
 
-	struct mm_struct *mm; // 用户虚拟地址空间
-	struct mm_struct *active_mm; // 用户活跃虚地址空间
+	struct mm_struct *mm; // 用户虚拟地址空间，内核线程的此字段为空指针
+	struct mm_struct *active_mm; // 用户活跃虚地址空间，和mm一致；内核线程在没有运行时是空指针，在运行时指向从上一个进程借用的引用计数+1的空间
 
 	/* Per-thread vma caching: */
 	struct vmacache			vmacache; // vma缓存

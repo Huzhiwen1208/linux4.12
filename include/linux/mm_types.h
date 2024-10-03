@@ -90,9 +90,9 @@ struct page {
 
 				unsigned int active;		/* SLAB */
 				struct {			/* SLUB */
-					unsigned inuse:16;
-					unsigned objects:15;
-					unsigned frozen:1;
+					unsigned inuse : 16;
+					unsigned objects : 15;
+					unsigned frozen : 1;
 				};
 				int units;			/* SLOB */
 			};
@@ -118,10 +118,10 @@ struct page {
 					 * by the page owner.
 					 */
 		struct dev_pagemap *pgmap; /* ZONE_DEVICE pages are never on an
-					    * lru or handled by a slab
-					    * allocator, this points to the
-					    * hosting device page map.
-					    */
+						* lru or handled by a slab
+						* allocator, this points to the
+						* hosting device page map.
+						*/
 		struct {		/* slub per cpu partial pages */
 			struct page *next;	/* Next partial slab */
 #ifdef CONFIG_64BIT
@@ -136,7 +136,7 @@ struct page {
 		struct rcu_head rcu_head;	/* Used by SLAB
 						 * when destroying via RCU
 						 */
-		/* Tail pages of compound page */
+						 /* Tail pages of compound page */
 		struct {
 			unsigned long compound_head; /* If bit zero is set */
 
@@ -170,7 +170,7 @@ struct page {
 	/* Remainder is not double word aligned */
 	union {
 		unsigned long private;		/* Mapping-private opaque data:
-					 	 * usually used for buffer_heads
+						 * usually used for buffer_heads
 						 * if PagePrivate set; used for
 						 * swp_entry_t if PageSwapCache;
 						 * indicates order in the buddy
@@ -206,10 +206,10 @@ struct page {
 #endif /* WANT_PAGE_VIRTUAL */
 
 #ifdef CONFIG_KMEMCHECK
-	/*
-	 * kmemcheck wants to track the status of each byte in a page; this
-	 * is a pointer to such a status block. NULL if not tracked.
-	 */
+					   /*
+						* kmemcheck wants to track the status of each byte in a page; this
+						* is a pointer to such a status block. NULL if not tracked.
+						*/
 	void *shadow;
 #endif
 
@@ -222,7 +222,7 @@ struct page {
  * on double words work. The SLUB allocator can make use of such a feature.
  */
 #ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
-	__aligned(2 * sizeof(unsigned long))
+__aligned(2 * sizeof(unsigned long))
 #endif
 ;
 
@@ -230,7 +230,7 @@ struct page {
 #define PAGE_FRAG_CACHE_MAX_ORDER	get_order(PAGE_FRAG_CACHE_MAX_SIZE)
 
 struct page_frag_cache {
-	void * va;
+	void *va;
 #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
 	__u16 offset;
 	__u16 size;
@@ -258,7 +258,7 @@ struct vm_region {
 	unsigned long	vm_end;		/* region initialised to here */
 	unsigned long	vm_top;		/* region allocated to here */
 	unsigned long	vm_pgoff;	/* the offset in vm_file corresponding to vm_start */
-	struct file	*vm_file;	/* the backing file or NULL */
+	struct file *vm_file;	/* the backing file or NULL */
 
 	int		vm_usage;	/* region usage count (access under nommu_region_sem) */
 	bool		vm_icache_flushed : 1; /* true if the icache has been flushed for
@@ -284,14 +284,14 @@ struct vm_userfaultfd_ctx {};
 struct vm_area_struct {
 	/* The first cache line has the info for VMA tree walking. */
 
-	unsigned long vm_start;		/* Our start address within vm_mm. */
-	unsigned long vm_end;		/* The first byte after our end address
-					   within vm_mm. */
+	unsigned long vm_start; // 虚存域起始地址
+	unsigned long vm_end; // 虚存域结束地址，开区间
+	within vm_mm. */
 
-	/* linked list of VM areas per task, sorted by address */
-	struct vm_area_struct *vm_next, *vm_prev;
+		/* linked list of VM areas per task, sorted by address */
+		struct vm_area_struct *vm_next, *vm_prev;  // 虚存域的链表，按起始地址排序
 
-	struct rb_node vm_rb;
+	struct rb_node vm_rb; // 虚存域红黑树节点
 
 	/*
 	 * Largest free memory gap in bytes to the left of this VMA.
@@ -303,9 +303,9 @@ struct vm_area_struct {
 
 	/* Second cache line starts here. */
 
-	struct mm_struct *vm_mm;	/* The address space we belong to. */
-	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
-	unsigned long vm_flags;		/* Flags, see mm.h. */
+	struct mm_struct *vm_mm; // 虚存域所属的内存描述符（用户虚地址空间）
+	pgprot_t vm_page_prot; // 保护位prot
+	unsigned long vm_flags; // 标志flags
 
 	/*
 	 * For areas with an address space and backing store,
@@ -314,7 +314,7 @@ struct vm_area_struct {
 	struct {
 		struct rb_node rb;
 		unsigned long rb_subtree_last;
-	} shared;
+	} shared; // 查询文件区间被映射到哪些虚存区域
 
 	/*
 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
@@ -322,18 +322,16 @@ struct vm_area_struct {
 	 * can only be in the i_mmap tree.  An anonymous MAP_PRIVATE, stack
 	 * or brk vma (with NULL file) can only be in an anon_vma list.
 	 */
-	struct list_head anon_vma_chain; /* Serialized by mmap_sem &
-					  * page_table_lock */
-	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
+	struct list_head anon_vma_chain;  // 匿名映射anon_vma链表
+	struct anon_vma *anon_vma;
 
 	/* Function pointers to deal with this struct. */
-	const struct vm_operations_struct *vm_ops;
+	const struct vm_operations_struct *vm_ops; // 虚存区域操作函数指针集合
 
 	/* Information about our backing store: */
-	unsigned long vm_pgoff;		/* Offset (within vm_file) in PAGE_SIZE
-					   units */
-	struct file * vm_file;		/* File we map to (can be NULL). */
-	void * vm_private_data;		/* was vm_pte (shared mem) */
+	unsigned long vm_pgoff; // 文件偏移，单位页
+	struct file *vm_file; // 映射的文件，如果是私有映射，则是空
+	void *vm_private_data;		/* was vm_pte (shared mem) */
 
 #ifndef CONFIG_MMU
 	struct vm_region *vm_region;	/* NOMMU mapping region */
@@ -357,24 +355,24 @@ struct core_state {
 
 struct kioctx_table;
 struct mm_struct {
-	struct vm_area_struct *mmap;		/* list of VMAs */
-	struct rb_root mm_rb;
+	struct vm_area_struct *mmap; // 虚存区域双向链表
+	struct rb_root mm_rb; // 虚存区域红黑树
 	u32 vmacache_seqnum;                   /* per-thread vmacache */
 #ifdef CONFIG_MMU
 	unsigned long (*get_unmapped_area) (struct file *filp,
-				unsigned long addr, unsigned long len,
-				unsigned long pgoff, unsigned long flags);
+		unsigned long addr, unsigned long len,
+		unsigned long pgoff, unsigned long flags);
 #endif
-	unsigned long mmap_base;		/* base of mmap area */
+	unsigned long mmap_base; // 内存映射区域起始地址
 	unsigned long mmap_legacy_base;         /* base of mmap area in bottom-up allocations */
 #ifdef CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES
 	/* Base adresses for compatible mmap() */
 	unsigned long mmap_compat_base;
 	unsigned long mmap_compat_legacy_base;
 #endif
-	unsigned long task_size;		/* size of task vm space */
+	unsigned long task_size; // 用户虚地址空间长度
 	unsigned long highest_vm_end;		/* highest vma end address */
-	pgd_t * pgd;
+	pgd_t *pgd; // 页全局目录指针，一级页表
 
 	/**
 	 * @mm_users: The number of users including userspace.
@@ -385,7 +383,7 @@ struct mm_struct {
 	 * (which may then free the &struct mm_struct if @mm_count also
 	 * drops to 0).
 	 */
-	atomic_t mm_users;
+	atomic_t mm_users;  // 共享该虚地址空间的进程数，一般指线程组中的进程数，因为线程组共享虚存空间
 
 	/**
 	 * @mm_count: The number of references to &struct mm_struct
@@ -394,7 +392,7 @@ struct mm_struct {
 	 * Use mmgrab()/mmdrop() to modify. When this drops to 0, the
 	 * &struct mm_struct is freed.
 	 */
-	atomic_t mm_count;
+	atomic_t mm_count; // 该虚存空间的引用计数
 
 	atomic_long_t nr_ptes;			/* PTE page table pages */
 #if CONFIG_PGTABLE_LEVELS > 2
@@ -421,9 +419,9 @@ struct mm_struct {
 	unsigned long exec_vm;		/* VM_EXEC & ~VM_WRITE & ~VM_STACK */
 	unsigned long stack_vm;		/* VM_STACK */
 	unsigned long def_flags;
-	unsigned long start_code, end_code, start_data, end_data;
-	unsigned long start_brk, brk, start_stack;
-	unsigned long arg_start, arg_end, env_start, env_end;
+	unsigned long start_code, end_code, start_data, end_data; // 代码段和数据段的起始和结束地址
+	unsigned long start_brk, brk, start_stack; // 堆的起始地址，当前堆的结束地址，栈的起始地址
+	unsigned long arg_start, arg_end, env_start, env_end; // 命令行参数和环境变量的起始和结束地址
 
 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
 
@@ -438,14 +436,14 @@ struct mm_struct {
 	cpumask_var_t cpu_vm_mask_var;
 
 	/* Architecture-specific MM context */
-	mm_context_t context;
+	mm_context_t context; // 体系结构相关的虚存空间上下文
 
 	unsigned long flags; /* Must use atomic bitops to access the bits */
 
 	struct core_state *core_state; /* coredumping support */
 #ifdef CONFIG_AIO
 	spinlock_t			ioctx_lock;
-	struct kioctx_table __rcu	*ioctx_table;
+	struct kioctx_table __rcu *ioctx_table;
 #endif
 #ifdef CONFIG_MEMCG
 	/*
@@ -504,8 +502,7 @@ struct mm_struct {
 
 extern struct mm_struct init_mm;
 
-static inline void mm_init_cpumask(struct mm_struct *mm)
-{
+static inline void mm_init_cpumask(struct mm_struct *mm) {
 #ifdef CONFIG_CPUMASK_OFFSTACK
 	mm->cpu_vm_mask_var = &mm->cpumask_allocation;
 #endif
@@ -513,8 +510,7 @@ static inline void mm_init_cpumask(struct mm_struct *mm)
 }
 
 /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
-static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
-{
+static inline cpumask_t *mm_cpumask(struct mm_struct *mm) {
 	return mm->cpu_vm_mask_var;
 }
 
@@ -525,13 +521,11 @@ static inline cpumask_t *mm_cpumask(struct mm_struct *mm)
  * The barriers below prevent the compiler from re-ordering the instructions
  * around the memory barriers that are already present in the code.
  */
-static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline bool mm_tlb_flush_pending(struct mm_struct *mm) {
 	barrier();
 	return mm->tlb_flush_pending;
 }
-static inline void set_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline void set_tlb_flush_pending(struct mm_struct *mm) {
 	mm->tlb_flush_pending = true;
 
 	/*
@@ -541,21 +535,17 @@ static inline void set_tlb_flush_pending(struct mm_struct *mm)
 	smp_mb__before_spinlock();
 }
 /* Clearing is done after a TLB flush, which also provides a barrier. */
-static inline void clear_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline void clear_tlb_flush_pending(struct mm_struct *mm) {
 	barrier();
 	mm->tlb_flush_pending = false;
 }
 #else
-static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline bool mm_tlb_flush_pending(struct mm_struct *mm) {
 	return false;
 }
-static inline void set_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline void set_tlb_flush_pending(struct mm_struct *mm) {
 }
-static inline void clear_tlb_flush_pending(struct mm_struct *mm)
-{
+static inline void clear_tlb_flush_pending(struct mm_struct *mm) {
 }
 #endif
 
@@ -577,11 +567,11 @@ struct vm_special_mapping {
 	 * on the special mapping.  If used, .pages is not checked.
 	 */
 	int (*fault)(const struct vm_special_mapping *sm,
-		     struct vm_area_struct *vma,
-		     struct vm_fault *vmf);
+		struct vm_area_struct *vma,
+		struct vm_fault *vmf);
 
 	int (*mremap)(const struct vm_special_mapping *sm,
-		     struct vm_area_struct *new_vma);
+		struct vm_area_struct *new_vma);
 };
 
 enum tlb_flush_reason {
@@ -593,10 +583,10 @@ enum tlb_flush_reason {
 	NR_TLB_FLUSH_REASONS,
 };
 
- /*
-  * A swap entry has to fit into a "unsigned long", as the entry is hidden
-  * in the "index" field of the swapper address space.
-  */
+/*
+ * A swap entry has to fit into a "unsigned long", as the entry is hidden
+ * in the "index" field of the swapper address space.
+ */
 typedef struct {
 	unsigned long val;
 } swp_entry_t;

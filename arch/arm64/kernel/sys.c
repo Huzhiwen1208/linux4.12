@@ -28,17 +28,15 @@
 #include <asm/cpufeature.h>
 
 asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
-			 unsigned long prot, unsigned long flags,
-			 unsigned long fd, off_t off)
-{
-	if (offset_in_page(off) != 0)
+	unsigned long prot, unsigned long flags,
+	unsigned long fd, off_t off) {
+	if (offset_in_page(off) != 0) // 如果off不是页对齐的
 		return -EINVAL;
 
 	return sys_mmap_pgoff(addr, len, prot, flags, fd, off >> PAGE_SHIFT);
 }
 
-SYSCALL_DEFINE1(arm64_personality, unsigned int, personality)
-{
+SYSCALL_DEFINE1(arm64_personality, unsigned int, personality) {
 	if (personality(personality) == PER_LINUX32 &&
 		!system_supports_32bit_el0())
 		return -EINVAL;
@@ -59,7 +57,7 @@ asmlinkage long sys_rt_sigreturn_wrapper(void);
  * The sys_call_table array must be 4K aligned to be accessible from
  * kernel/entry.S.
  */
-void * const sys_call_table[__NR_syscalls] __aligned(4096) = {
+void *const sys_call_table[__NR_syscalls] __aligned(4096) = {
 	[0 ... __NR_syscalls - 1] = sys_ni_syscall,
 #include <asm/unistd.h>
 };
