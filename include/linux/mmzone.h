@@ -64,7 +64,7 @@ enum migratetype {
 };
 
 /* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
-extern char * const migratetype_names[MIGRATE_TYPES];
+extern char *const migratetype_names[MIGRATE_TYPES];
 
 #ifdef CONFIG_CMA
 #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
@@ -74,8 +74,7 @@ extern char * const migratetype_names[MIGRATE_TYPES];
 #  define is_migrate_cma_page(_page) false
 #endif
 
-static inline bool is_migrate_movable(int mt)
-{
+static inline bool is_migrate_movable(int mt) {
 	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
 }
 
@@ -93,8 +92,8 @@ extern int page_group_by_mobility_disabled;
 			PB_migrate_end, MIGRATETYPE_MASK)
 
 struct free_area {
-	struct list_head	free_list[MIGRATE_TYPES];
-	unsigned long		nr_free;
+	struct list_head	free_list[MIGRATE_TYPES]; // 空闲链表
+	unsigned long		nr_free; // 空闲页块数
 };
 
 struct pglist_data;
@@ -143,7 +142,8 @@ enum zone_stat_item {
 	NUMA_OTHER,		/* allocation from other node */
 #endif
 	NR_FREE_CMA_PAGES,
-	NR_VM_ZONE_STAT_ITEMS };
+	NR_VM_ZONE_STAT_ITEMS
+};
 
 enum node_stat_item {
 	NR_LRU_BASE,
@@ -202,13 +202,11 @@ enum lru_list {
 
 #define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_ACTIVE_FILE; lru++)
 
-static inline int is_file_lru(enum lru_list lru)
-{
+static inline int is_file_lru(enum lru_list lru) {
 	return (lru == LRU_INACTIVE_FILE || lru == LRU_ACTIVE_FILE);
 }
 
-static inline int is_active_lru(enum lru_list lru)
-{
+static inline int is_active_lru(enum lru_list lru) {
 	return (lru == LRU_ACTIVE_ANON || lru == LRU_ACTIVE_FILE);
 }
 
@@ -347,6 +345,7 @@ enum zone_type {
 
 #ifndef __GENERATING_BOUNDS_H
 
+// 内存区域结构体
 struct zone {
 	/* Read-mostly fields */
 
@@ -369,7 +368,7 @@ struct zone {
 #ifdef CONFIG_NUMA
 	int node;
 #endif
-	struct pglist_data	*zone_pgdat;
+	struct pglist_data *zone_pgdat;
 	struct per_cpu_pageset __percpu *pageset;
 
 #ifndef CONFIG_SPARSEMEM
@@ -377,7 +376,7 @@ struct zone {
 	 * Flags for a pageblock_nr_pages block. See pageblock-flags.h.
 	 * In SPARSEMEM, this map is stored in struct mem_section
 	 */
-	unsigned long		*pageblock_flags;
+	unsigned long *pageblock_flags;
 #endif /* CONFIG_SPARSEMEM */
 
 	/* zone_start_pfn == zone_start_paddr >> PAGE_SHIFT */
@@ -424,11 +423,11 @@ struct zone {
 	 * adjust_managed_page_count() should be used instead of directly
 	 * touching zone->managed_pages and totalram_pages.
 	 */
-	unsigned long		managed_pages;
+	unsigned long		managed_pages; // 伙伴系统管理的页数，不包括引导内存分配器分配的页
 	unsigned long		spanned_pages;
 	unsigned long		present_pages;
 
-	const char		*name;
+	const char *name;
 
 #ifdef CONFIG_MEMORY_ISOLATION
 	/*
@@ -449,8 +448,8 @@ struct zone {
 	/* Write-intensive fields used from the page allocator */
 	ZONE_PADDING(_pad1_)
 
-	/* free areas of different sizes */
-	struct free_area	free_area[MAX_ORDER];
+		/* free areas of different sizes */
+		struct free_area	free_area[MAX_ORDER]; // 空闲页块数组， 下标对应页块的阶数
 
 	/* zone flags, see below */
 	unsigned long		flags;
@@ -461,12 +460,12 @@ struct zone {
 	/* Write-intensive fields used by compaction and vmstats. */
 	ZONE_PADDING(_pad2_)
 
-	/*
-	 * When free pages are below this point, additional steps are taken
-	 * when reading the number of free pages to avoid per-cpu counter
-	 * drift allowing watermarks to be breached
-	 */
-	unsigned long percpu_drift_mark;
+		/*
+		 * When free pages are below this point, additional steps are taken
+		 * when reading the number of free pages to avoid per-cpu counter
+		 * drift allowing watermarks to be breached
+		 */
+		unsigned long percpu_drift_mark;
 
 #if defined CONFIG_COMPACTION || defined CONFIG_CMA
 	/* pfn where compaction free scanner should start */
@@ -494,8 +493,8 @@ struct zone {
 	bool			contiguous;
 
 	ZONE_PADDING(_pad3_)
-	/* Zone statistics */
-	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+		/* Zone statistics */
+		atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
 } ____cacheline_internodealigned_in_smp;
 
 enum pgdat_flags {
@@ -512,23 +511,19 @@ enum pgdat_flags {
 	PGDAT_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
 };
 
-static inline unsigned long zone_end_pfn(const struct zone *zone)
-{
+static inline unsigned long zone_end_pfn(const struct zone *zone) {
 	return zone->zone_start_pfn + zone->spanned_pages;
 }
 
-static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn)
-{
+static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn) {
 	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
 }
 
-static inline bool zone_is_initialized(struct zone *zone)
-{
+static inline bool zone_is_initialized(struct zone *zone) {
 	return zone->initialized;
 }
 
-static inline bool zone_is_empty(struct zone *zone)
-{
+static inline bool zone_is_empty(struct zone *zone) {
 	return zone->spanned_pages == 0;
 }
 
@@ -539,7 +534,7 @@ static inline bool zone_is_empty(struct zone *zone)
  */
 #define DEF_PRIORITY 12
 
-/* Maximum number of zones on a zonelist */
+ /* Maximum number of zones on a zonelist */
 #define MAX_ZONES_PER_ZONELIST (MAX_NUMNODES * MAX_NR_ZONES)
 
 enum {
@@ -627,7 +622,7 @@ typedef struct pglist_data {
 	unsigned long node_start_pfn;
 	unsigned long node_present_pages; /* total number of physical pages */
 	unsigned long node_spanned_pages; /* total size of physical page
-					     range, including holes */
+						 range, including holes */
 	int node_id;
 	wait_queue_head_t kswapd_wait;
 	wait_queue_head_t pfmemalloc_wait;
@@ -670,7 +665,7 @@ typedef struct pglist_data {
 
 	/* Write-intensive fields used by page reclaim */
 	ZONE_PADDING(_pad1_)
-	spinlock_t		lru_lock;
+		spinlock_t		lru_lock;
 
 #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
 	/*
@@ -700,8 +695,8 @@ typedef struct pglist_data {
 
 	ZONE_PADDING(_pad2_)
 
-	/* Per-node vmstats */
-	struct per_cpu_nodestat __percpu *per_cpu_nodestats;
+		/* Per-node vmstats */
+		struct per_cpu_nodestat __percpu *per_cpu_nodestats;
 	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
 } pg_data_t;
 
@@ -716,41 +711,34 @@ typedef struct pglist_data {
 
 #define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
 #define node_end_pfn(nid) pgdat_end_pfn(NODE_DATA(nid))
-static inline spinlock_t *zone_lru_lock(struct zone *zone)
-{
+static inline spinlock_t *zone_lru_lock(struct zone *zone) {
 	return &zone->zone_pgdat->lru_lock;
 }
 
-static inline struct lruvec *node_lruvec(struct pglist_data *pgdat)
-{
+static inline struct lruvec *node_lruvec(struct pglist_data *pgdat) {
 	return &pgdat->lruvec;
 }
 
-static inline unsigned long pgdat_end_pfn(pg_data_t *pgdat)
-{
+static inline unsigned long pgdat_end_pfn(pg_data_t *pgdat) {
 	return pgdat->node_start_pfn + pgdat->node_spanned_pages;
 }
 
-static inline bool pgdat_is_empty(pg_data_t *pgdat)
-{
+static inline bool pgdat_is_empty(pg_data_t *pgdat) {
 	return !pgdat->node_start_pfn && !pgdat->node_spanned_pages;
 }
 
-static inline int zone_id(const struct zone *zone)
-{
+static inline int zone_id(const struct zone *zone) {
 	struct pglist_data *pgdat = zone->zone_pgdat;
 
 	return zone - pgdat->node_zones;
 }
 
 #ifdef CONFIG_ZONE_DEVICE
-static inline bool is_dev_zone(const struct zone *zone)
-{
+static inline bool is_dev_zone(const struct zone *zone) {
 	return zone_id(zone) == ZONE_DEVICE;
 }
 #else
-static inline bool is_dev_zone(const struct zone *zone)
-{
+static inline bool is_dev_zone(const struct zone *zone) {
 	return false;
 }
 #endif
@@ -761,24 +749,23 @@ extern struct mutex zonelists_mutex;
 void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
 void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
 bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
-			 int classzone_idx, unsigned int alloc_flags,
-			 long free_pages);
+	int classzone_idx, unsigned int alloc_flags,
+	long free_pages);
 bool zone_watermark_ok(struct zone *z, unsigned int order,
-		unsigned long mark, int classzone_idx,
-		unsigned int alloc_flags);
+	unsigned long mark, int classzone_idx,
+	unsigned int alloc_flags);
 bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
-		unsigned long mark, int classzone_idx);
+	unsigned long mark, int classzone_idx);
 enum memmap_context {
 	MEMMAP_EARLY,
 	MEMMAP_HOTPLUG,
 };
 extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
-				     unsigned long size);
+	unsigned long size);
 
 extern void lruvec_init(struct lruvec *lruvec);
 
-static inline struct pglist_data *lruvec_pgdat(struct lruvec *lruvec)
-{
+static inline struct pglist_data *lruvec_pgdat(struct lruvec *lruvec) {
 #ifdef CONFIG_MEMCG
 	return lruvec->pgdat;
 #else
@@ -809,28 +796,25 @@ unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
  */
 #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
 
-/*
- * Returns true if a zone has pages managed by the buddy allocator.
- * All the reclaim decisions have to use this function rather than
- * populated_zone(). If the whole zone is reserved then we can easily
- * end up with populated_zone() && !managed_zone().
- */
-static inline bool managed_zone(struct zone *zone)
-{
+ /*
+  * Returns true if a zone has pages managed by the buddy allocator.
+  * All the reclaim decisions have to use this function rather than
+  * populated_zone(). If the whole zone is reserved then we can easily
+  * end up with populated_zone() && !managed_zone().
+  */
+static inline bool managed_zone(struct zone *zone) {
 	return zone->managed_pages;
 }
 
 /* Returns true if a zone has memory */
-static inline bool populated_zone(struct zone *zone)
-{
+static inline bool populated_zone(struct zone *zone) {
 	return zone->present_pages;
 }
 
 extern int movable_zone;
 
 #ifdef CONFIG_HIGHMEM
-static inline int zone_movable_is_highmem(void)
-{
+static inline int zone_movable_is_highmem(void) {
 #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
 	return movable_zone == ZONE_HIGHMEM;
 #else
@@ -839,8 +823,7 @@ static inline int zone_movable_is_highmem(void)
 }
 #endif
 
-static inline int is_highmem_idx(enum zone_type idx)
-{
+static inline int is_highmem_idx(enum zone_type idx) {
 #ifdef CONFIG_HIGHMEM
 	return (idx == ZONE_HIGHMEM ||
 		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
@@ -850,13 +833,12 @@ static inline int is_highmem_idx(enum zone_type idx)
 }
 
 /**
- * is_highmem - helper function to quickly check if a struct zone is a 
+ * is_highmem - helper function to quickly check if a struct zone is a
  *              highmem zone or not.  This is an attempt to keep references
  *              to ZONE_{DMA/NORMAL/HIGHMEM/etc} in general code to a minimum.
  * @zone - pointer to struct zone variable
  */
-static inline int is_highmem(struct zone *zone)
-{
+static inline int is_highmem(struct zone *zone) {
 #ifdef CONFIG_HIGHMEM
 	return is_highmem_idx(zone_idx(zone));
 #else
@@ -867,21 +849,21 @@ static inline int is_highmem(struct zone *zone)
 /* These two functions are used to setup the per zone pages min values */
 struct ctl_table;
 int min_free_kbytes_sysctl_handler(struct ctl_table *, int,
-					void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 int watermark_scale_factor_sysctl_handler(struct ctl_table *, int,
-					void __user *, size_t *, loff_t *);
-extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1];
+	void __user *, size_t *, loff_t *);
+extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES - 1];
 int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *, int,
-					void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 int percpu_pagelist_fraction_sysctl_handler(struct ctl_table *, int,
-					void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *, int,
-			void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 int sysctl_min_slab_ratio_sysctl_handler(struct ctl_table *, int,
-			void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 
 extern int numa_zonelist_order_handler(struct ctl_table *, int,
-			void __user *, size_t *, loff_t *);
+	void __user *, size_t *, loff_t *);
 extern char numa_zonelist_order[];
 #define NUMA_ZONELIST_ORDER_LEN 16	/* string buffer size */
 
@@ -909,13 +891,13 @@ extern struct zone *next_zone(struct zone *zone);
 	for (pgdat = first_online_pgdat();		\
 	     pgdat;					\
 	     pgdat = next_online_pgdat(pgdat))
-/**
- * for_each_zone - helper macro to iterate over all memory zones
- * @zone - pointer to struct zone variable
- *
- * The user only needs to declare the zone variable, for_each_zone
- * fills it in.
- */
+ /**
+  * for_each_zone - helper macro to iterate over all memory zones
+  * @zone - pointer to struct zone variable
+  *
+  * The user only needs to declare the zone variable, for_each_zone
+  * fills it in.
+  */
 #define for_each_zone(zone)			        \
 	for (zone = (first_online_pgdat())->node_zones; \
 	     zone;					\
@@ -929,18 +911,15 @@ extern struct zone *next_zone(struct zone *zone);
 			; /* do nothing */		\
 		else
 
-static inline struct zone *zonelist_zone(struct zoneref *zoneref)
-{
+static inline struct zone *zonelist_zone(struct zoneref *zoneref) {
 	return zoneref->zone;
 }
 
-static inline int zonelist_zone_idx(struct zoneref *zoneref)
-{
+static inline int zonelist_zone_idx(struct zoneref *zoneref) {
 	return zoneref->zone_idx;
 }
 
-static inline int zonelist_node_idx(struct zoneref *zoneref)
-{
+static inline int zonelist_node_idx(struct zoneref *zoneref) {
 #ifdef CONFIG_NUMA
 	/* zone_to_nid not available in this context */
 	return zoneref->zone->node;
@@ -950,8 +929,8 @@ static inline int zonelist_node_idx(struct zoneref *zoneref)
 }
 
 struct zoneref *__next_zones_zonelist(struct zoneref *z,
-					enum zone_type highest_zoneidx,
-					nodemask_t *nodes);
+	enum zone_type highest_zoneidx,
+	nodemask_t *nodes);
 
 /**
  * next_zones_zonelist - Returns the next zone at or below highest_zoneidx within the allowed nodemask using a cursor within a zonelist as a starting point
@@ -966,9 +945,8 @@ struct zoneref *__next_zones_zonelist(struct zoneref *z,
  * next_zones_zonelist again.
  */
 static __always_inline struct zoneref *next_zones_zonelist(struct zoneref *z,
-					enum zone_type highest_zoneidx,
-					nodemask_t *nodes)
-{
+	enum zone_type highest_zoneidx,
+	nodemask_t *nodes) {
 	if (likely(!nodes && zonelist_zone_idx(z) <= highest_zoneidx))
 		return z;
 	return __next_zones_zonelist(z, highest_zoneidx, nodes);
@@ -991,11 +969,10 @@ static __always_inline struct zoneref *next_zones_zonelist(struct zoneref *z,
  * update due to cpuset modification.
  */
 static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
-					enum zone_type highest_zoneidx,
-					nodemask_t *nodes)
-{
+	enum zone_type highest_zoneidx,
+	nodemask_t *nodes) {
 	return next_zones_zonelist(zonelist->_zonerefs,
-							highest_zoneidx, nodes);
+		highest_zoneidx, nodes);
 }
 
 /**
@@ -1022,15 +999,15 @@ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
 			zone = zonelist_zone(z))
 
 
-/**
- * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
- * @zone - The current zone in the iterator
- * @z - The current pointer within zonelist->zones being iterated
- * @zlist - The zonelist being iterated
- * @highidx - The zone index of the highest zone to return
- *
- * This iterator iterates though all zones at or below a given zone index.
- */
+ /**
+  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
+  * @zone - The current zone in the iterator
+  * @z - The current pointer within zonelist->zones being iterated
+  * @zlist - The zonelist being iterated
+  * @highidx - The zone index of the highest zone to return
+  *
+  * This iterator iterates though all zones at or below a given zone index.
+  */
 #define for_each_zone_zonelist(zone, z, zlist, highidx) \
 	for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, NULL)
 
@@ -1040,8 +1017,7 @@ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
 
 #if !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) && \
 	!defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
-static inline unsigned long early_pfn_to_nid(unsigned long pfn)
-{
+static inline unsigned long early_pfn_to_nid(unsigned long pfn) {
 	return 0;
 }
 #endif
@@ -1128,13 +1104,12 @@ extern struct mem_section *mem_section[NR_SECTION_ROOTS];
 extern struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
 #endif
 
-static inline struct mem_section *__nr_to_section(unsigned long nr)
-{
+static inline struct mem_section *__nr_to_section(unsigned long nr) {
 	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
 		return NULL;
 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
 }
-extern int __section_nr(struct mem_section* ms);
+extern int __section_nr(struct mem_section *ms);
 extern unsigned long usemap_size(void);
 
 /*
@@ -1148,49 +1123,41 @@ extern unsigned long usemap_size(void);
 #define SECTION_MAP_MASK	(~(SECTION_MAP_LAST_BIT-1))
 #define SECTION_NID_SHIFT	2
 
-static inline struct page *__section_mem_map_addr(struct mem_section *section)
-{
+static inline struct page *__section_mem_map_addr(struct mem_section *section) {
 	unsigned long map = section->section_mem_map;
 	map &= SECTION_MAP_MASK;
 	return (struct page *)map;
 }
 
-static inline int present_section(struct mem_section *section)
-{
+static inline int present_section(struct mem_section *section) {
 	return (section && (section->section_mem_map & SECTION_MARKED_PRESENT));
 }
 
-static inline int present_section_nr(unsigned long nr)
-{
+static inline int present_section_nr(unsigned long nr) {
 	return present_section(__nr_to_section(nr));
 }
 
-static inline int valid_section(struct mem_section *section)
-{
+static inline int valid_section(struct mem_section *section) {
 	return (section && (section->section_mem_map & SECTION_HAS_MEM_MAP));
 }
 
-static inline int valid_section_nr(unsigned long nr)
-{
+static inline int valid_section_nr(unsigned long nr) {
 	return valid_section(__nr_to_section(nr));
 }
 
-static inline struct mem_section *__pfn_to_section(unsigned long pfn)
-{
+static inline struct mem_section *__pfn_to_section(unsigned long pfn) {
 	return __nr_to_section(pfn_to_section_nr(pfn));
 }
 
 #ifndef CONFIG_HAVE_ARCH_PFN_VALID
-static inline int pfn_valid(unsigned long pfn)
-{
+static inline int pfn_valid(unsigned long pfn) {
 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
 		return 0;
 	return valid_section(__nr_to_section(pfn_to_section_nr(pfn)));
 }
 #endif
 
-static inline int pfn_present(unsigned long pfn)
-{
+static inline int pfn_present(unsigned long pfn) {
 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
 		return 0;
 	return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
@@ -1249,27 +1216,26 @@ unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
 #endif
 
 #ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
-/*
- * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
- * associated with it or not. In FLATMEM, it is expected that holes always
- * have valid memmap as long as there is valid PFNs either side of the hole.
- * In SPARSEMEM, it is assumed that a valid section has a memmap for the
- * entire section.
- *
- * However, an ARM, and maybe other embedded architectures in the future
- * free memmap backing holes to save memory on the assumption the memmap is
- * never used. The page_zone linkages are then broken even though pfn_valid()
- * returns true. A walker of the full memmap must then do this additional
- * check to ensure the memmap they are looking at is sane by making sure
- * the zone and PFN linkages are still valid. This is expensive, but walkers
- * of the full memmap are extremely rare.
- */
+ /*
+  * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
+  * associated with it or not. In FLATMEM, it is expected that holes always
+  * have valid memmap as long as there is valid PFNs either side of the hole.
+  * In SPARSEMEM, it is assumed that a valid section has a memmap for the
+  * entire section.
+  *
+  * However, an ARM, and maybe other embedded architectures in the future
+  * free memmap backing holes to save memory on the assumption the memmap is
+  * never used. The page_zone linkages are then broken even though pfn_valid()
+  * returns true. A walker of the full memmap must then do this additional
+  * check to ensure the memmap they are looking at is sane by making sure
+  * the zone and PFN linkages are still valid. This is expensive, but walkers
+  * of the full memmap are extremely rare.
+  */
 bool memmap_valid_within(unsigned long pfn,
-					struct page *page, struct zone *zone);
+	struct page *page, struct zone *zone);
 #else
 static inline bool memmap_valid_within(unsigned long pfn,
-					struct page *page, struct zone *zone)
-{
+	struct page *page, struct zone *zone) {
 	return true;
 }
 #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
