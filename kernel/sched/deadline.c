@@ -1126,7 +1126,7 @@ struct task_struct *
 		 * being very careful to re-start the picking loop.
 		 */
 		rq_unpin_lock(rq, rf);
-		pull_dl_task(rq);
+		pull_dl_task(rq); // 从限期进程超载的处理器把限期进程拉过来
 		rq_repin_lock(rq, rf);
 		/*
 		 * pull_dl_task() can drop (and re-acquire) rq->lock; this
@@ -1508,7 +1508,7 @@ static void pull_dl_task(struct rq *this_rq) {
 	struct rq *src_rq;
 	u64 dmin = LONG_MAX;
 
-	if (likely(!dl_overloaded(this_rq)))
+	if (likely(!dl_overloaded(this_rq))) // 如果当前队列没有限期进程超载
 		return;
 
 	/*
