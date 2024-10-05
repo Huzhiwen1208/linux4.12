@@ -44,7 +44,7 @@
 
 struct fault_info {
 	int	(*fn)(unsigned long addr, unsigned int esr,
-		      struct pt_regs *regs);
+		struct pt_regs *regs);
 	int	sig;
 	int	code;
 	const char *name;
@@ -52,14 +52,12 @@ struct fault_info {
 
 static const struct fault_info fault_info[];
 
-static inline const struct fault_info *esr_to_fault_info(unsigned int esr)
-{
+static inline const struct fault_info *esr_to_fault_info(unsigned int esr) {
 	return fault_info + (esr & 63);
 }
 
 #ifdef CONFIG_KPROBES
-static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
-{
+static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr) {
 	int ret = 0;
 
 	/* kprobe_running() needs smp_processor_id() */
@@ -73,8 +71,7 @@ static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
 	return ret;
 }
 #else
-static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
-{
+static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr) {
 	return 0;
 }
 #endif
@@ -82,8 +79,7 @@ static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
 /*
  * Dump out the page tables associated with 'addr' in mm 'mm'.
  */
-void show_pte(struct mm_struct *mm, unsigned long addr)
-{
+void show_pte(struct mm_struct *mm, unsigned long addr) {
 	pgd_t *pgd;
 
 	if (!mm)
@@ -114,7 +110,7 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
 		pte = pte_offset_map(pmd, addr);
 		pr_cont(", *pte=%016llx", pte_val(*pte));
 		pte_unmap(pte);
-	} while(0);
+	} while (0);
 
 	pr_cont("\n");
 }
@@ -131,9 +127,8 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
  * Returns whether or not the PTE actually changed.
  */
 int ptep_set_access_flags(struct vm_area_struct *vma,
-			  unsigned long address, pte_t *ptep,
-			  pte_t entry, int dirty)
-{
+	unsigned long address, pte_t *ptep,
+	pte_t entry, int dirty) {
 	pteval_t old_pteval;
 	unsigned int tmp;
 
@@ -155,29 +150,27 @@ int ptep_set_access_flags(struct vm_area_struct *vma,
 	 * hardware update of the access/dirty state.
 	 */
 	asm volatile("//	ptep_set_access_flags\n"
-	"	prfm	pstl1strm, %2\n"
-	"1:	ldxr	%0, %2\n"
-	"	and	%0, %0, %3		// clear PTE_RDONLY\n"
-	"	orr	%0, %0, %4		// set flags\n"
-	"	stxr	%w1, %0, %2\n"
-	"	cbnz	%w1, 1b\n"
-	: "=&r" (old_pteval), "=&r" (tmp), "+Q" (pte_val(*ptep))
-	: "L" (~PTE_RDONLY), "r" (pte_val(entry)));
+		"	prfm	pstl1strm, %2\n"
+		"1:	ldxr	%0, %2\n"
+		"	and	%0, %0, %3		// clear PTE_RDONLY\n"
+		"	orr	%0, %0, %4		// set flags\n"
+		"	stxr	%w1, %0, %2\n"
+		"	cbnz	%w1, 1b\n"
+		: "=&r" (old_pteval), "=&r" (tmp), "+Q" (pte_val(*ptep))
+		: "L" (~PTE_RDONLY), "r" (pte_val(entry)));
 
 	flush_tlb_fix_spurious_fault(vma, address);
 	return 1;
 }
 #endif
 
-static bool is_el1_instruction_abort(unsigned int esr)
-{
+static bool is_el1_instruction_abort(unsigned int esr) {
 	return ESR_ELx_EC(esr) == ESR_ELx_EC_IABT_CUR;
 }
 
 static inline bool is_permission_fault(unsigned int esr, struct pt_regs *regs,
-				       unsigned long addr)
-{
-	unsigned int ec       = ESR_ELx_EC(esr);
+	unsigned long addr) {
+	unsigned int ec = ESR_ELx_EC(esr);
 	unsigned int fsc_type = esr & ESR_ELx_FSC_TYPE;
 
 	if (ec != ESR_ELx_EC_DABT_CUR && ec != ESR_ELx_EC_IABT_CUR)
@@ -188,7 +181,7 @@ static inline bool is_permission_fault(unsigned int esr, struct pt_regs *regs,
 
 	if (addr < USER_DS && system_uses_ttbr0_pan())
 		return fsc_type == ESR_ELx_FSC_FAULT &&
-			(regs->pstate & PSR_PAN_BIT);
+		(regs->pstate & PSR_PAN_BIT);
 
 	return false;
 }
@@ -197,15 +190,14 @@ static inline bool is_permission_fault(unsigned int esr, struct pt_regs *regs,
  * The kernel tried to access some page that wasn't present.
  */
 static void __do_kernel_fault(struct mm_struct *mm, unsigned long addr,
-			      unsigned int esr, struct pt_regs *regs)
-{
+	unsigned int esr, struct pt_regs *regs) {
 	const char *msg;
 
 	/*
 	 * Are we prepared to handle this kernel fault?
 	 * We are almost certainly not prepared to handle instruction faults.
 	 */
-	if (!is_el1_instruction_abort(esr) && fixup_exception(regs))
+	if (!is_el1_instruction_abort(esr) && fixup_exception(regs)) // 如果是指令异常，直接返回
 		return;
 
 	/*
@@ -225,7 +217,7 @@ static void __do_kernel_fault(struct mm_struct *mm, unsigned long addr,
 	}
 
 	pr_alert("Unable to handle kernel %s at virtual address %08lx\n", msg,
-		 addr);
+		addr);
 
 	show_pte(mm, addr);
 	die("Oops", regs, esr);
@@ -238,9 +230,8 @@ static void __do_kernel_fault(struct mm_struct *mm, unsigned long addr,
  * accesses just cause a SIGSEGV
  */
 static void __do_user_fault(struct task_struct *tsk, unsigned long addr,
-			    unsigned int esr, unsigned int sig, int code,
-			    struct pt_regs *regs)
-{
+	unsigned int esr, unsigned int sig, int code,
+	struct pt_regs *regs) {
 	struct siginfo si;
 	const struct fault_info *inf;
 
@@ -262,8 +253,7 @@ static void __do_user_fault(struct task_struct *tsk, unsigned long addr,
 	force_sig_info(sig, &si, tsk);
 }
 
-static void do_bad_area(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-{
+static void do_bad_area(unsigned long addr, unsigned int esr, struct pt_regs *regs) {
 	struct task_struct *tsk = current;
 	struct mm_struct *mm = tsk->active_mm;
 	const struct fault_info *inf;
@@ -283,9 +273,8 @@ static void do_bad_area(unsigned long addr, unsigned int esr, struct pt_regs *re
 #define VM_FAULT_BADACCESS	0x020000
 
 static int __do_page_fault(struct mm_struct *mm, unsigned long addr,
-			   unsigned int mm_flags, unsigned long vm_flags,
-			   struct task_struct *tsk)
-{
+	unsigned int mm_flags, unsigned long vm_flags,
+	struct task_struct *tsk) {
 	struct vm_area_struct *vma;
 	int fault;
 
@@ -319,14 +308,13 @@ out:
 	return fault;
 }
 
-static bool is_el0_instruction_abort(unsigned int esr)
-{
+static bool is_el0_instruction_abort(unsigned int esr) {
 	return ESR_ELx_EC(esr) == ESR_ELx_EC_IABT_LOW;
 }
 
+// 缺页异常处理
 static int __kprobes do_page_fault(unsigned long addr, unsigned int esr,
-				   struct pt_regs *regs)
-{
+	struct pt_regs *regs) {
 	struct task_struct *tsk;
 	struct mm_struct *mm;
 	int fault, sig, code;
@@ -337,16 +325,13 @@ static int __kprobes do_page_fault(unsigned long addr, unsigned int esr,
 		return 0;
 
 	tsk = current;
-	mm  = tsk->mm;
+	mm = tsk->mm;
 
-	/*
-	 * If we're in an interrupt or have no user context, we must not take
-	 * the fault.
-	 */
+	// 如果当前禁止了缺页处理（当然包含原子上下文时）或者是内核线程
 	if (faulthandler_disabled() || !mm)
 		goto no_context;
 
-	if (user_mode(regs))
+	if (user_mode(regs)) // 如果是用户态进程
 		mm_flags |= FAULT_FLAG_USER;
 
 	if (is_el0_instruction_abort(esr)) {
@@ -376,7 +361,7 @@ static int __kprobes do_page_fault(unsigned long addr, unsigned int esr,
 	if (!down_read_trylock(&mm->mmap_sem)) {
 		if (!user_mode(regs) && !search_exception_tables(regs->pc))
 			goto no_context;
-retry:
+	retry:
 		down_read(&mm->mmap_sem);
 	} else {
 		/*
@@ -411,11 +396,11 @@ retry:
 		if (fault & VM_FAULT_MAJOR) {
 			tsk->maj_flt++;
 			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs,
-				      addr);
+				addr);
 		} else {
 			tsk->min_flt++;
 			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs,
-				      addr);
+				addr);
 		}
 		if (fault & VM_FAULT_RETRY) {
 			/*
@@ -434,7 +419,7 @@ retry:
 	 * Handle the "normal" case first - VM_FAULT_MAJOR
 	 */
 	if (likely(!(fault & (VM_FAULT_ERROR | VM_FAULT_BADMAP |
-			      VM_FAULT_BADACCESS))))
+		VM_FAULT_BADACCESS))))
 		return 0;
 
 	/*
@@ -497,9 +482,8 @@ no_context:
  * page table, nothing more.
  */
 static int __kprobes do_translation_fault(unsigned long addr,
-					  unsigned int esr,
-					  struct pt_regs *regs)
-{
+	unsigned int esr,
+	struct pt_regs *regs) {
 	if (addr < TASK_SIZE)
 		return do_page_fault(addr, esr, regs);
 
@@ -508,8 +492,7 @@ static int __kprobes do_translation_fault(unsigned long addr,
 }
 
 static int do_alignment_fault(unsigned long addr, unsigned int esr,
-			      struct pt_regs *regs)
-{
+	struct pt_regs *regs) {
 	do_bad_area(addr, esr, regs);
 	return 0;
 }
@@ -517,8 +500,7 @@ static int do_alignment_fault(unsigned long addr, unsigned int esr,
 /*
  * This abort handler always returns "fault".
  */
-static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-{
+static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs) {
 	return 1;
 }
 
@@ -593,8 +575,7 @@ static const struct fault_info fault_info[] = {
  * Dispatch a data abort to the relevant handler.
  */
 asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-					 struct pt_regs *regs)
-{
+	struct pt_regs *regs) {
 	const struct fault_info *inf = esr_to_fault_info(esr);
 	struct siginfo info;
 
@@ -602,12 +583,12 @@ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
 		return;
 
 	pr_alert("Unhandled fault: %s (0x%08x) at 0x%016lx\n",
-		 inf->name, esr, addr);
+		inf->name, esr, addr);
 
 	info.si_signo = inf->sig;
 	info.si_errno = 0;
-	info.si_code  = inf->code;
-	info.si_addr  = (void __user *)addr;
+	info.si_code = inf->code;
+	info.si_addr = (void __user *)addr;
 	arm64_notify_die("", regs, &info, esr);
 }
 
@@ -615,27 +596,26 @@ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
  * Handle stack alignment exceptions.
  */
 asmlinkage void __exception do_sp_pc_abort(unsigned long addr,
-					   unsigned int esr,
-					   struct pt_regs *regs)
-{
+	unsigned int esr,
+	struct pt_regs *regs) {
 	struct siginfo info;
 	struct task_struct *tsk = current;
 
 	if (show_unhandled_signals && unhandled_signal(tsk, SIGBUS))
 		pr_info_ratelimited("%s[%d]: %s exception: pc=%p sp=%p\n",
-				    tsk->comm, task_pid_nr(tsk),
-				    esr_get_class_string(esr), (void *)regs->pc,
-				    (void *)regs->sp);
+			tsk->comm, task_pid_nr(tsk),
+			esr_get_class_string(esr), (void *)regs->pc,
+			(void *)regs->sp);
 
 	info.si_signo = SIGBUS;
 	info.si_errno = 0;
-	info.si_code  = BUS_ADRALN;
-	info.si_addr  = (void __user *)addr;
+	info.si_code = BUS_ADRALN;
+	info.si_addr = (void __user *)addr;
 	arm64_notify_die("Oops - SP/PC alignment exception", regs, &info, esr);
 }
 
 int __init early_brk64(unsigned long addr, unsigned int esr,
-		       struct pt_regs *regs);
+	struct pt_regs *regs);
 
 /*
  * __refdata because early_brk64 is __init, but the reference to it is
@@ -654,21 +634,19 @@ static struct fault_info __refdata debug_fault_info[] = {
 };
 
 void __init hook_debug_fault_code(int nr,
-				  int (*fn)(unsigned long, unsigned int, struct pt_regs *),
-				  int sig, int code, const char *name)
-{
+	int (*fn)(unsigned long, unsigned int, struct pt_regs *),
+	int sig, int code, const char *name) {
 	BUG_ON(nr < 0 || nr >= ARRAY_SIZE(debug_fault_info));
 
-	debug_fault_info[nr].fn		= fn;
-	debug_fault_info[nr].sig	= sig;
-	debug_fault_info[nr].code	= code;
-	debug_fault_info[nr].name	= name;
+	debug_fault_info[nr].fn = fn;
+	debug_fault_info[nr].sig = sig;
+	debug_fault_info[nr].code = code;
+	debug_fault_info[nr].name = name;
 }
 
 asmlinkage int __exception do_debug_exception(unsigned long addr,
-					      unsigned int esr,
-					      struct pt_regs *regs)
-{
+	unsigned int esr,
+	struct pt_regs *regs) {
 	const struct fault_info *inf = debug_fault_info + DBG_ESR_EVT(esr);
 	struct siginfo info;
 	int rv;
@@ -684,12 +662,12 @@ asmlinkage int __exception do_debug_exception(unsigned long addr,
 		rv = 1;
 	} else {
 		pr_alert("Unhandled debug exception: %s (0x%08x) at 0x%016lx\n",
-			 inf->name, esr, addr);
+			inf->name, esr, addr);
 
 		info.si_signo = inf->sig;
 		info.si_errno = 0;
-		info.si_code  = inf->code;
-		info.si_addr  = (void __user *)addr;
+		info.si_code = inf->code;
+		info.si_addr = (void __user *)addr;
 		arm64_notify_die("", regs, &info, 0);
 		rv = 0;
 	}
@@ -702,8 +680,7 @@ asmlinkage int __exception do_debug_exception(unsigned long addr,
 NOKPROBE_SYMBOL(do_debug_exception);
 
 #ifdef CONFIG_ARM64_PAN
-int cpu_enable_pan(void *__unused)
-{
+int cpu_enable_pan(void *__unused) {
 	/*
 	 * We modify PSTATE. This won't work from irq context as the PSTATE
 	 * is discarded once we return from the exception.

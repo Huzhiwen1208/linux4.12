@@ -355,8 +355,8 @@ struct core_state {
 
 struct kioctx_table;
 struct mm_struct {
-	struct vm_area_struct *mmap; // 虚存区域双向链表
-	struct rb_root mm_rb; // 虚存区域红黑树
+	struct vm_area_struct *mmap; // 虚存区域双向链表头
+	struct rb_root mm_rb; // 虚存区域红黑树，指向红黑树根节点
 	u32 vmacache_seqnum;                   /* per-thread vmacache */
 #ifdef CONFIG_MMU
 	unsigned long (*get_unmapped_area) (struct file *filp,

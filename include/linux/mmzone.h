@@ -190,11 +190,11 @@ enum node_stat_item {
 #define LRU_FILE 2
 
 enum lru_list {
-	LRU_INACTIVE_ANON = LRU_BASE,
-	LRU_ACTIVE_ANON = LRU_BASE + LRU_ACTIVE,
-	LRU_INACTIVE_FILE = LRU_BASE + LRU_FILE,
-	LRU_ACTIVE_FILE = LRU_BASE + LRU_FILE + LRU_ACTIVE,
-	LRU_UNEVICTABLE,
+	LRU_INACTIVE_ANON = LRU_BASE, // 非活跃的匿名页链表
+	LRU_ACTIVE_ANON = LRU_BASE + LRU_ACTIVE, // 活跃的匿名页链表
+	LRU_INACTIVE_FILE = LRU_BASE + LRU_FILE, // 非活跃的文件页链表
+	LRU_ACTIVE_FILE = LRU_BASE + LRU_FILE + LRU_ACTIVE, // 活跃的文件页链表
+	LRU_UNEVICTABLE, // 不可回收的页链表
 	NR_LRU_LISTS
 };
 
@@ -683,7 +683,7 @@ typedef struct pglist_data {
 #endif
 
 	/* Fields commonly accessed by the page reclaim scanner */
-	struct lruvec		lruvec;
+	struct lruvec		lruvec; // LRU向量，包含五条LRU链表
 
 	/*
 	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
