@@ -15,28 +15,26 @@
 
 #include <linux/atomic.h>
 
-/*
- * The default fd array needs to be at least BITS_PER_LONG,
- * as this is the granularity returned by copy_fdset().
- */
+ /*
+  * The default fd array needs to be at least BITS_PER_LONG,
+  * as this is the granularity returned by copy_fdset().
+  */
 #define NR_OPEN_DEFAULT BITS_PER_LONG
 
 struct fdtable {
-	unsigned int max_fds;
-	struct file __rcu **fd;      /* current fd array */
-	unsigned long *close_on_exec;
-	unsigned long *open_fds;
+	unsigned int max_fds; // 当前fd数组的大小
+	struct file __rcu **fd; // 打开的file实例数组
+	unsigned long *close_on_exec; // 位图，表示是否在execve时关闭
+	unsigned long *open_fds; // 文件描述符位图，只是哪些文件描述符是打开的
 	unsigned long *full_fds_bits;
 	struct rcu_head rcu;
 };
 
-static inline bool close_on_exec(unsigned int fd, const struct fdtable *fdt)
-{
+static inline bool close_on_exec(unsigned int fd, const struct fdtable *fdt) {
 	return test_bit(fd, fdt->close_on_exec);
 }
 
-static inline bool fd_is_open(unsigned int fd, const struct fdtable *fdt)
-{
+static inline bool fd_is_open(unsigned int fd, const struct fdtable *fdt) {
 	return test_bit(fd, fdt->open_fds);
 }
 
@@ -44,24 +42,24 @@ static inline bool fd_is_open(unsigned int fd, const struct fdtable *fdt)
  * Open file table structure
  */
 struct files_struct {
-  /*
-   * read mostly part
-   */
-	atomic_t count;
+	/*
+	 * read mostly part
+	 */
+	atomic_t count; // 引用计数
 	bool resize_in_progress;
 	wait_queue_head_t resize_wait;
 
-	struct fdtable __rcu *fdt;
+	struct fdtable __rcu *fdt; // 打开文件表
 	struct fdtable fdtab;
-  /*
-   * written part on a separate cache line in SMP
-   */
+	/*
+	 * written part on a separate cache line in SMP
+	 */
 	spinlock_t file_lock ____cacheline_aligned_in_smp;
 	unsigned int next_fd;
 	unsigned long close_on_exec_init[1];
 	unsigned long open_fds_init[1];
 	unsigned long full_fds_bits_init[1];
-	struct file __rcu * fd_array[NR_OPEN_DEFAULT];
+	struct file __rcu *fd_array[NR_OPEN_DEFAULT];
 };
 
 struct file_operations;
@@ -77,8 +75,7 @@ struct dentry;
 /*
  * The caller must ensure that fd table isn't shared or hold rcu or file lock
  */
-static inline struct file *__fcheck_files(struct files_struct *files, unsigned int fd)
-{
+static inline struct file *__fcheck_files(struct files_struct *files, unsigned int fd) {
 	struct fdtable *fdt = rcu_dereference_raw(files->fdt);
 
 	if (fd < fdt->max_fds)
@@ -86,11 +83,10 @@ static inline struct file *__fcheck_files(struct files_struct *files, unsigned i
 	return NULL;
 }
 
-static inline struct file *fcheck_files(struct files_struct *files, unsigned int fd)
-{
+static inline struct file *fcheck_files(struct files_struct *files, unsigned int fd) {
 	RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
-			   !lockdep_is_held(&files->file_lock),
-			   "suspicious rcu_dereference_check() usage");
+		!lockdep_is_held(&files->file_lock),
+		"suspicious rcu_dereference_check() usage");
 	return __fcheck_files(files, fd);
 }
 
@@ -108,15 +104,15 @@ int unshare_files(struct files_struct **);
 struct files_struct *dup_fd(struct files_struct *, int *) __latent_entropy;
 void do_close_on_exec(struct files_struct *);
 int iterate_fd(struct files_struct *, unsigned,
-		int (*)(const void *, struct file *, unsigned),
-		const void *);
+	int (*)(const void *, struct file *, unsigned),
+	const void *);
 
 extern int __alloc_fd(struct files_struct *files,
-		      unsigned start, unsigned end, unsigned flags);
+	unsigned start, unsigned end, unsigned flags);
 extern void __fd_install(struct files_struct *files,
-		      unsigned int fd, struct file *file);
+	unsigned int fd, struct file *file);
 extern int __close_fd(struct files_struct *files,
-		      unsigned int fd);
+	unsigned int fd);
 
 extern struct kmem_cache *files_cachep;
 

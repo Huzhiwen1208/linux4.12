@@ -807,8 +807,9 @@ struct file {
 		struct llist_node	fu_llist;
 		struct rcu_head 	fu_rcuhead;
 	} f_u;
+	// 存储文件在目录树中的位置，{mnt: 文件系统挂载描述符指针，dentry: 文件对应的目录项}
 	struct path		f_path;
-	struct inode *f_inode;	/* cached value */
+	struct inode *f_inode; // 指向文件的索引节点
 	const struct file_operations *f_op; // 文件操作函数
 
 	/*
@@ -816,11 +817,11 @@ struct file {
 	 * Must not be taken from IRQ context.
 	 */
 	spinlock_t		f_lock;
-	atomic_long_t		f_count;
+	atomic_long_t		f_count; // 该结构体实例引用计数
 	unsigned int 		f_flags;
-	fmode_t			f_mode;
+	fmode_t			f_mode; // 访问模式
 	struct mutex		f_pos_lock;
-	loff_t			f_pos;
+	loff_t			f_pos; // 文件偏移
 	struct fown_struct	f_owner;
 	const struct cred *f_cred;
 	struct file_ra_state	f_ra;
@@ -837,7 +838,7 @@ struct file {
 	struct list_head	f_ep_links;
 	struct list_head	f_tfile_llink;
 #endif /* #ifdef CONFIG_EPOLL */
-	struct address_space *f_mapping;
+	struct address_space *f_mapping; // 文件的地址空间
 } __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
 
 struct file_handle {

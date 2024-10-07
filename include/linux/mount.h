@@ -1,6 +1,6 @@
 /*
  *
- * Definitions for mount interface. This describes the in the kernel build 
+ * Definitions for mount interface. This describes the in the kernel build
  * linkedlist with mounted filesystems.
  *
  * Author:  Marco van Wieringen <mvw@planets.elm.net>
@@ -64,8 +64,8 @@ struct mnt_namespace;
 #define MNT_UMOUNT		0x8000000
 
 struct vfsmount {
-	struct dentry *mnt_root;	/* root of the mounted tree */
-	struct super_block *mnt_sb;	/* pointer to superblock */
+	struct dentry *mnt_root; // 文件系统根目录的dentry指针
+	struct super_block *mnt_sb;	// 文件系统超级块指针
 	int mnt_flags;
 };
 
@@ -88,11 +88,11 @@ extern struct vfsmount *clone_private_mount(const struct path *path);
 
 struct file_system_type;
 extern struct vfsmount *vfs_kern_mount(struct file_system_type *type,
-				      int flags, const char *name,
-				      void *data);
+	int flags, const char *name,
+	void *data);
 extern struct vfsmount *vfs_submount(const struct dentry *mountpoint,
-				     struct file_system_type *type,
-				     const char *name, void *data);
+	struct file_system_type *type,
+	const char *name, void *data);
 
 extern void mnt_set_expiry(struct vfsmount *mnt, struct list_head *expiry_list);
 extern void mark_mounts_for_expiry(struct list_head *mounts);

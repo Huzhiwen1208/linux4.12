@@ -734,10 +734,10 @@ struct task_struct {
 	unsigned long			last_switch_count;
 #endif
 	/* Filesystem information: */
-	struct fs_struct *fs; // 文件系统
+	struct fs_struct *fs; // 文件系统信息，主要是当前根目录和工作目录
 
 	/* Open file information: */
-	struct files_struct *files; // 打开文件信息
+	struct files_struct *files; // 打开文件表
 
 	/* Namespaces: */
 	struct nsproxy *nsproxy; // 命名空间
