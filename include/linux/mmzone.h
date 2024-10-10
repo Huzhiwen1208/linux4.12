@@ -594,17 +594,17 @@ extern struct page *mem_map;
  */
 struct bootmem_data;
 typedef struct pglist_data {
-	struct zone node_zones[MAX_NR_ZONES];
-	struct zonelist node_zonelists[MAX_ZONELISTS];
-	int nr_zones;
+	struct zone node_zones[MAX_NR_ZONES]; // 本节点的所有内存区域
+	struct zonelist node_zonelists[MAX_ZONELISTS]; // 本节点的所有内存区域列表
+	int nr_zones; // 本节点的内存区域数
 #ifdef CONFIG_FLAT_NODE_MEM_MAP	/* means !SPARSEMEM */
-	struct page *node_mem_map;
+	struct page *node_mem_map; // 本节点的所有页帧
 #ifdef CONFIG_PAGE_EXTENSION
-	struct page_ext *node_page_ext;
+	struct page_ext *node_page_ext; // 本节点的所有页扩展
 #endif
 #endif
 #ifndef CONFIG_NO_BOOTMEM
-	struct bootmem_data *bdata;
+	struct bootmem_data *bdata; // 指向内存的引导程序
 #endif
 #ifdef CONFIG_MEMORY_HOTPLUG
 	/*
@@ -619,7 +619,7 @@ typedef struct pglist_data {
 	 */
 	spinlock_t node_size_lock;
 #endif
-	unsigned long node_start_pfn;
+	unsigned long node_start_pfn; // 本节点的起始页帧号
 	unsigned long node_present_pages; /* total number of physical pages */
 	unsigned long node_spanned_pages; /* total size of physical page
 						 range, including holes */

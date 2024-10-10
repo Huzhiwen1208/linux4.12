@@ -749,7 +749,7 @@ struct task_struct {
 	sigset_t			real_blocked; // 真实阻塞信号
 	/* Restored if set_restore_sigmask() was used: */
 	sigset_t			saved_sigmask; // 保存的信号掩码
-	struct sigpending		pending; // 挂起信号
+	struct sigpending		pending; // 未决信号, 每个信号在进程中注册都会把信号值加入到进程的未决信号集
 	unsigned long			sas_ss_sp; // 信号栈指针
 	size_t				sas_ss_size; // 信号栈大小
 	unsigned int			sas_ss_flags; // 信号栈标志
